@@ -1,12 +1,14 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Star, ShoppingCart } from 'lucide-react';
+import { Star, ShoppingCart, Check } from 'lucide-react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { Product } from '@/lib/data/products';
+import { useCart } from '@/lib/contexts/cart-context';
 
 interface ProductCardProps {
   product: Product;
@@ -14,11 +16,42 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product, viewMode = 'grid' }: ProductCardProps) {
+  const { addToCart } = useCart();
+  const [isAdding, setIsAdding] = useState(false);
+  const [isAdded, setIsAdded] = useState(false);
+
   const discountPercentage = product.originalPrice
     ? Math.round(
         ((product.originalPrice - product.price) / product.originalPrice) * 100
       )
     : 0;
+
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!product.inStock || isAdding) return;
+
+    setIsAdding(true);
+    
+    addToCart({
+      productId: product.id,
+      name: product.name,
+      image: product.images[0],
+      price: product.price,
+      quantity: 1,
+      color: product.colors[0] || undefined,
+      size: product.sizes?.[0] || undefined,
+    });
+
+    setIsAdded(true);
+    setIsAdding(false);
+
+    // Reset the "Added" state after 2 seconds
+    setTimeout(() => {
+      setIsAdded(false);
+    }, 2000);
+  };
 
   if (viewMode === 'list') {
     return (
@@ -82,13 +115,20 @@ export function ProductCard({ product, viewMode = 'grid' }: ProductCardProps) {
               </div>
               <Button
                 className="w-full md:w-auto hover:scale-105 transition-transform duration-200 rounded-lg"
-                disabled={!product.inStock}
-                onClick={(e) => {
-                  e.preventDefault();
-                }}
+                disabled={!product.inStock || isAdding}
+                onClick={handleAddToCart}
               >
-                <ShoppingCart className="h-4 w-4 mr-2" />
-                Add to Cart
+                {isAdded ? (
+                  <>
+                    <Check className="h-4 w-4 mr-2" />
+                    Added!
+                  </>
+                ) : (
+                  <>
+                    <ShoppingCart className="h-4 w-4 mr-2" />
+                    {isAdding ? 'Adding...' : 'Add to Cart'}
+                  </>
+                )}
               </Button>
             </div>
           </div>
@@ -170,13 +210,20 @@ export function ProductCard({ product, viewMode = 'grid' }: ProductCardProps) {
           >
             <Button
               className="w-full rounded-lg"
-              disabled={!product.inStock}
-              onClick={(e) => {
-                e.preventDefault();
-              }}
+              disabled={!product.inStock || isAdding}
+              onClick={handleAddToCart}
             >
-              <ShoppingCart className="h-4 w-4 mr-2" />
-              Add to Cart
+              {isAdded ? (
+                <>
+                  <Check className="h-4 w-4 mr-2" />
+                  Added!
+                </>
+              ) : (
+                <>
+                  <ShoppingCart className="h-4 w-4 mr-2" />
+                  {isAdding ? 'Adding...' : 'Add to Cart'}
+                </>
+              )}
             </Button>
           </motion.div>
         </CardFooter>

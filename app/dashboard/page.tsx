@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,41 +16,20 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { mockOrders } from '@/lib/data/orders';
 import {
   User,
   Package,
-  MapPin,
   Calendar,
   DollarSign,
   Edit,
-  Save,
-  X,
   FileText,
   Truck,
 } from 'lucide-react';
 import Link from 'next/link';
 import type { Order } from '@/lib/data/orders';
-
-interface UserData {
-  name: string;
-  email: string;
-  phone: string;
-  address: string;
-  avatar: string;
-}
-
-const initialUser: UserData = {
-  name: 'John Doe',
-  email: 'john.doe@example.com',
-  phone: '+1 (555) 123-4567',
-  address: '123 Main St, New York, NY 10001',
-  avatar:
-    'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face',
-};
+import { useAuth } from '@/lib/contexts/auth-context';
+import { EditProfileModal } from '@/components/edit-profile-modal';
 
 const getStatusColor = (status: string) => {
   switch (status) {
@@ -69,41 +49,30 @@ const getStatusColor = (status: string) => {
 };
 
 export default function DashboardPage() {
-  const [user, setUser] = useState<UserData>(initialUser);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [editFormData, setEditFormData] = useState<UserData>(user);
-  const [isSaving, setIsSaving] = useState(false);
+  const router = useRouter();
+  const { user, isAuthenticated } = useAuth();
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isOrderDetailsOpen, setIsOrderDetailsOpen] = useState(false);
 
-  const handleEditClick = () => {
-    setEditFormData(user);
-    setIsEditDialogOpen(true);
-  };
+  // Redirect if not authenticated - use useEffect to avoid SSR issues
+  useEffect(() => {
+    if (typeof window !== 'undefined' && (!isAuthenticated || !user)) {
+      router.push('/login');
+    }
+  }, [isAuthenticated, user, router]);
+  
+  if (!isAuthenticated || !user) {
+    return null;
+  }
 
-  const handleSave = () => {
-    setIsSaving(true);
-    // Simulate API call
-    setTimeout(() => {
-      setUser(editFormData);
-      setIsEditDialogOpen(false);
-      setIsSaving(false);
-    }, 500);
-  };
-
-  const handleCancel = () => {
-    setEditFormData(user);
-    setIsEditDialogOpen(false);
-  };
-
-  const handleInputChange = (
-    field: keyof UserData,
-    value: string
-  ) => {
-    setEditFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
   };
 
   const handleViewDetails = (order: Order) => {
@@ -143,12 +112,9 @@ export default function DashboardPage() {
                   transition={{ duration: 0.2 }}
                 >
                   <Avatar className="h-24 w-24 border-4 border-background shadow-lg">
-                    <AvatarImage src={user.avatar} alt={user.name} />
-                    <AvatarFallback className="text-2xl">
-                      {user.name
-                        .split(' ')
-                        .map((n) => n[0])
-                        .join('')}
+                    <AvatarImage src={user.profilePicture} alt={user.name} />
+                    <AvatarFallback className="text-2xl bg-primary/10 text-primary">
+                      {getInitials(user.name)}
                     </AvatarFallback>
                   </Avatar>
                 </motion.div>
@@ -162,35 +128,24 @@ export default function DashboardPage() {
 
               <Separator />
 
-              <div className="space-y-3">
-                <div className="flex items-start space-x-3">
-                  <MapPin className="h-4 w-4 mt-0.5 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm font-medium">Address</p>
-                    <p className="text-sm text-muted-foreground">
-                      {user.address}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <DollarSign className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm font-medium">Phone</p>
-                    <p className="text-sm text-muted-foreground">
-                      {user.phone}
-                    </p>
-                  </div>
-                </div>
-              </div>
+              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                <Button
+                  variant="outline"
+                  className="w-full rounded-full"
+                  onClick={() => setIsEditModalOpen(true)}
+                >
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit Profile
+                </Button>
+              </motion.div>
 
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                 <Button
                   variant="outline"
-                  className="w-full rounded-lg"
-                  onClick={handleEditClick}
+                  className="w-full rounded-full"
+                  asChild
                 >
-                  <Edit className="h-4 w-4 mr-2" />
-                  Edit Profile
+                  <Link href="/profile">View Full Profile</Link>
                 </Button>
               </motion.div>
             </CardContent>
@@ -311,96 +266,11 @@ export default function DashboardPage() {
         </motion.div>
       </div>
 
-      {/* Edit Profile Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-[500px] rounded-lg">
-          <DialogHeader>
-            <DialogTitle className="text-2xl">Edit Profile</DialogTitle>
-            <DialogDescription>
-              Update your profile information below.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Full Name</Label>
-              <Input
-                id="name"
-                value={editFormData.name}
-                onChange={(e) => handleInputChange('name', e.target.value)}
-                placeholder="Enter your full name"
-                className="rounded-lg"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={editFormData.email}
-                onChange={(e) => handleInputChange('email', e.target.value)}
-                placeholder="Enter your email"
-                className="rounded-lg"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="phone">Phone Number</Label>
-              <Input
-                id="phone"
-                type="tel"
-                value={editFormData.phone}
-                onChange={(e) => handleInputChange('phone', e.target.value)}
-                placeholder="Enter your phone number"
-                className="rounded-lg"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="address">Address</Label>
-              <Textarea
-                id="address"
-                value={editFormData.address}
-                onChange={(e) => handleInputChange('address', e.target.value)}
-                placeholder="Enter your address"
-                className="rounded-lg min-h-[100px]"
-                rows={3}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="avatar">Avatar URL</Label>
-              <Input
-                id="avatar"
-                type="url"
-                value={editFormData.avatar}
-                onChange={(e) => handleInputChange('avatar', e.target.value)}
-                placeholder="Enter avatar image URL"
-                className="rounded-lg"
-              />
-            </div>
-          </div>
-          <DialogFooter className="gap-2">
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button
-                variant="outline"
-                onClick={handleCancel}
-                disabled={isSaving}
-                className="rounded-lg"
-              >
-                <X className="h-4 w-4 mr-2" />
-                Cancel
-              </Button>
-            </motion.div>
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button
-                onClick={handleSave}
-                disabled={isSaving}
-                className="rounded-lg"
-              >
-                <Save className="h-4 w-4 mr-2" />
-                {isSaving ? 'Saving...' : 'Save Changes'}
-              </Button>
-            </motion.div>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Edit Profile Modal */}
+      <EditProfileModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+      />
 
       {/* Order Details Dialog */}
       <Dialog open={isOrderDetailsOpen} onOpenChange={setIsOrderDetailsOpen}>
@@ -474,7 +344,7 @@ export default function DashboardPage() {
                   </h3>
                   <div className="p-4 bg-muted/30 rounded-lg">
                     <div className="flex items-start space-x-3">
-                      <MapPin className="h-5 w-5 mt-0.5 text-muted-foreground" />
+                      <Truck className="h-5 w-5 mt-0.5 text-muted-foreground" />
                       <div>
                         <p className="text-sm font-medium mb-1">
                           Shipping Address

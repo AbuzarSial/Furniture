@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,30 +16,15 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { ArrowLeft, Lock, CreditCard, Truck } from 'lucide-react';
-
-// Mock cart items (in real app, this would come from cart context/state)
-const checkoutItems = [
-  {
-    productId: '1',
-    name: 'Nordic Modern Bed Frame',
-    image: 'https://images.unsplash.com/photo-1631889993954-3b055f8e47e0?w=100&h=100&fit=crop',
-    price: 1299,
-    quantity: 1,
-    color: 'Natural Oak',
-    size: 'Queen',
-  },
-  {
-    productId: '2',
-    name: 'Luxury Velvet Sofa',
-    image: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=100&h=100&fit=crop',
-    price: 2499,
-    quantity: 2,
-    color: 'Emerald Green',
-    size: '3-Seater',
-  },
-];
+import { useCart } from '@/lib/contexts/cart-context';
+import { useAuth } from '@/lib/contexts/auth-context';
 
 export default function CheckoutPage() {
+  const router = useRouter();
+  const { cartItems, getCartTotal, clearCart } = useCart();
+  const { user, isAuthenticated, isLoading } = useAuth();
+
+  // All hooks must be called before any early returns
   const [shippingInfo, setShippingInfo] = useState({
     firstName: '',
     lastName: '',
@@ -65,10 +51,44 @@ export default function CheckoutPage() {
 
   const [shippingMethod, setShippingMethod] = useState('standard');
 
-  const subtotal = checkoutItems.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0
-  );
+  // Redirect to cart if cart is empty
+  useEffect(() => {
+    if (cartItems.length === 0) {
+      router.push('/cart');
+    }
+  }, [cartItems.length, router]);
+
+  // Redirect unauthenticated users to auth page
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      const currentPath = window.location.pathname;
+      router.push(`/auth?returnUrl=${encodeURIComponent(currentPath)}`);
+    }
+  }, [isAuthenticated, isLoading, router]);
+
+  // Show loading while checking auth
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render if not authenticated (will redirect)
+  if (!isAuthenticated) {
+    return null;
+  }
+
+  // Don't render if cart is empty (will redirect)
+  if (cartItems.length === 0) {
+    return null;
+  }
+
+  const subtotal = getCartTotal();
 
   const shippingCosts = {
     standard: 99,
@@ -90,9 +110,17 @@ export default function CheckoutPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Checkout logic would go here - integrate with payment API
-    // Redirect to order confirmation page after successful payment
+    // Mock checkout - in real app, this would call payment API
+    // Clear cart after successful order
+    clearCart();
+    // Redirect to order confirmation (or dashboard)
+    router.push('/dashboard');
   };
+
+  // Show loading or empty state
+  if (cartItems.length === 0) {
+    return null; // Will redirect via useEffect
+  }
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
@@ -106,7 +134,9 @@ export default function CheckoutPage() {
         </Link>
         <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2">Checkout</h1>
         <p className="text-sm sm:text-base text-muted-foreground">
-          Complete your order with secure payment
+          {isAuthenticated
+            ? `Welcome back, ${user?.name}! Complete your order with secure payment.`
+            : 'Complete your order with secure payment'}
         </p>
       </div>
 
@@ -451,8 +481,8 @@ export default function CheckoutPage() {
               <CardContent className="space-y-4">
                 {/* Order Items */}
                 <div className="space-y-4">
-                  {checkoutItems.map((item) => (
-                    <div key={item.productId} className="flex space-x-4">
+                  {cartItems.map((item) => (
+                    <div key={`${item.productId}-${item.color}-${item.size}`} className="flex space-x-4">
                       <img
                         src={item.image}
                         alt={item.name}

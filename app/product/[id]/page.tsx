@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -18,9 +18,12 @@ import {
 import { Label } from '@/components/ui/label';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
+import { useCart } from '@/lib/contexts/cart-context';
 
 export default function ProductDetailPage() {
   const params = useParams();
+  const router = useRouter();
+  const { addToCart } = useCart();
   const product = getProductById(params.id as string);
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedColor, setSelectedColor] = useState<string>(
@@ -30,6 +33,7 @@ export default function ProductDetailPage() {
     product?.sizes?.[0] || ''
   );
   const [quantity, setQuantity] = useState(1);
+  const [isAdding, setIsAdding] = useState(false);
   const imageRef = useRef<HTMLDivElement>(null);
 
   const mouseX = useMotionValue(0);
@@ -334,10 +338,27 @@ export default function ProductDetailPage() {
               <Button
                 className="w-full h-14 text-lg rounded-lg depth-shadow-lg"
                 size="lg"
-                disabled={!product.inStock}
+                disabled={!product.inStock || isAdding}
+                onClick={() => {
+                  if (!product) return;
+                  setIsAdding(true);
+                  addToCart({
+                    productId: product.id,
+                    name: product.name,
+                    image: product.images[0],
+                    price: product.price,
+                    quantity: quantity,
+                    color: selectedColor || undefined,
+                    size: selectedSize || undefined,
+                  });
+                  setTimeout(() => {
+                    setIsAdding(false);
+                    router.push('/cart');
+                  }, 300);
+                }}
               >
                 <ShoppingCart className="h-5 w-5 mr-2" />
-                Add to Cart
+                {isAdding ? 'Adding...' : 'Add to Cart'}
               </Button>
             </motion.div>
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>

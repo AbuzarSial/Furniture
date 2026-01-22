@@ -85,15 +85,15 @@ export function PremiumHero() {
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: 'easeOut' }}
-          className="max-w-2xl mx-auto text-center sm:text-left"
+          className="max-w-2xl mx-auto lg:mx-0 text-center lg:text-left"
         >
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="mb-6"
+            className="mb-6 sm:mb-8"
           >
-            <span className="inline-block px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6 border border-primary/20">
+            <span className="inline-block px-4 sm:px-6 py-2 sm:py-2.5 rounded-full bg-primary/10 text-primary text-xs sm:text-sm font-medium border border-primary/20 backdrop-blur-sm">
               Premium Furniture Collection
             </span>
           </motion.div>
@@ -102,7 +102,7 @@ export function PremiumHero() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.3 }}
-            className="text-4xl sm:text-5xl md:text-6xl lg:text-8xl font-bold mb-4 sm:mb-6 tracking-tight leading-tight"
+            className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold mb-4 sm:mb-6 tracking-tight leading-[1.1]"
             style={{
               background: 'linear-gradient(135deg, #ffffff 0%, #e0e0e0 100%)',
               WebkitBackgroundClip: 'text',
@@ -119,7 +119,7 @@ export function PremiumHero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.5 }}
-            className="text-base sm:text-lg md:text-xl lg:text-2xl text-muted-foreground mb-6 sm:mb-8 md:mb-10 leading-relaxed px-2 sm:px-0"
+            className="text-base sm:text-lg md:text-xl lg:text-2xl text-muted-foreground/90 mb-8 sm:mb-10 md:mb-12 leading-relaxed max-w-xl mx-auto lg:mx-0"
           >
             Discover premium furniture that combines elegance, comfort, and
             timeless design. Crafted for those who appreciate the finer things.
@@ -129,7 +129,7 @@ export function PremiumHero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.7 }}
-            className="flex flex-col sm:flex-row gap-4"
+            className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
           >
             <motion.div
               whileHover={{ scale: 1.05 }}
@@ -138,11 +138,11 @@ export function PremiumHero() {
               <Button
                 asChild
                 size="lg"
-                className="text-base sm:text-lg px-6 sm:px-8 md:px-10 py-5 sm:py-6 md:py-7 rounded-full depth-shadow-lg bg-primary hover:bg-primary/90 transition-all w-full sm:w-auto"
+                className="text-base sm:text-lg px-8 sm:px-10 py-6 sm:py-7 rounded-full depth-shadow-lg bg-primary hover:bg-primary/90 transition-all w-full sm:w-auto"
               >
                 <Link href="/shop" className="flex items-center justify-center">
                   Shop Collection
-                  <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
+                  <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
               </Button>
             </motion.div>
@@ -154,7 +154,7 @@ export function PremiumHero() {
                 asChild
                 variant="outline"
                 size="lg"
-                className="text-base sm:text-lg px-6 sm:px-8 md:px-10 py-5 sm:py-6 md:py-7 rounded-full border-2 backdrop-blur-sm bg-background/50 w-full sm:w-auto"
+                className="text-base sm:text-lg px-8 sm:px-10 py-6 sm:py-7 rounded-full border-2 backdrop-blur-sm bg-background/50 hover:bg-background/70 w-full sm:w-auto"
               >
                 <Link href="/about">Explore Design</Link>
               </Button>

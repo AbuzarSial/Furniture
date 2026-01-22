@@ -19,7 +19,7 @@ export function ParallaxSection() {
   return (
     <section
       ref={ref}
-      className="relative py-32 overflow-hidden"
+      className="relative py-24 sm:py-32 md:py-40 overflow-hidden"
       style={{
         background: 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%)',
       }}
@@ -47,7 +47,7 @@ export function ParallaxSection() {
       {/* Content */}
       <motion.div
         style={{ y: contentY }}
-        className="container mx-auto px-4 relative z-10"
+        className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10"
       >
         <div className="max-w-4xl mx-auto text-center">
           <motion.h2
@@ -55,7 +55,7 @@ export function ParallaxSection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
-            className="text-5xl md:text-7xl font-bold mb-6"
+            className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6 sm:mb-8 leading-tight"
             style={{
               background: 'linear-gradient(135deg, #ffffff 0%, #e0e0e0 100%)',
               WebkitBackgroundClip: 'text',
@@ -71,7 +71,7 @@ export function ParallaxSection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="text-xl md:text-2xl mb-10 text-muted-foreground opacity-90"
+            className="text-lg sm:text-xl md:text-2xl mb-8 sm:mb-10 md:mb-12 text-muted-foreground/90 max-w-2xl mx-auto leading-relaxed"
           >
             Transform your home with premium furniture at unbeatable prices.
             Limited time offer!
@@ -88,7 +88,7 @@ export function ParallaxSection() {
               asChild
               variant="secondary"
               size="lg"
-              className="text-lg px-10 py-7 rounded-full depth-shadow-lg"
+              className="text-base sm:text-lg px-8 sm:px-10 py-6 sm:py-7 rounded-full depth-shadow-lg"
             >
               <Link href="/shop">Shop Sale</Link>
             </Button>
